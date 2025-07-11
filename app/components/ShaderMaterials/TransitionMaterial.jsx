@@ -26,7 +26,6 @@ export const TransitionMaterial = shaderMaterial(
 
     void main() {
       vec2 uv = vUv;
-
       vec4 _texture1 = texture2D(tex1, uv);
       vec4 _texture2 = texture2D(tex2, uv);
       vec4 _texture3 = texture2D(tex3, uv);
