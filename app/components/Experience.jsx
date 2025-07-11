@@ -85,7 +85,7 @@ export const Experience = ({
     const timeline = gsap.timeline();
     const pRef = progressionRef.current;
 
-    if (currentScene === "Scene3" && prevScene === "Scene2") {
+    if (currentScene === "Scene4" && prevScene === "Scene3") {
       pRef.value = 0;
       timeline.to(pRef, {
         value: 1.0,
@@ -100,7 +100,7 @@ export const Experience = ({
       // return;
     }
 
-    if (currentScene === "Scene2" && prevScene === "Scene3") {
+    if (currentScene === "Scene3" && prevScene === "Scene4") {
       pRef.value = 2.0;
       timeline.to(pRef, {
         value: 1.0,

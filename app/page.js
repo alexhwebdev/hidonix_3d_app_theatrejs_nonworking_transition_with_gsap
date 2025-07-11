@@ -42,22 +42,23 @@ dracoLoader.setDecoderPath('/draco/');
 const gltfLoader = new GLTFLoader();
 gltfLoader.setDRACOLoader(dracoLoader);
 
-const sceneOrder = ["Scene1", "Scene2", "Scene3", 
-  "Scene4"
+const sceneOrder = [
+  "Scene1", "Scene2", "Scene3", 
+  "Scene4", "Scene5", "Scene6", 
 ];
 
 const cameraPositions = {
   Scene1: { x: -7, y: 5, z: 6.5 },
   Scene2: { x: -1, y: 14.5, z: -5.05 },
   Scene3: { x: -4.579, y: 1.697, z: 2.177 },
-  Scene4: { x: -4.579, y: 1.697, z: 2.177 },
+  // Scene4: { x: -4.579, y: 1.697, z: 2.177 },
 };
 
 const cameraTargets = {
   Scene1: { x: 0, y: -1, z: 0 },
   Scene2: { x: 0, y: 0, z: -5.043 },
   Scene3: { x: -2.034, y: 0.464, z: 0.550 },
-  Scene4: { x: -2.034, y: 0.464, z: 0.550 },
+  // Scene4: { x: -2.034, y: 0.464, z: 0.550 },
 };
 
 export default function App() {
@@ -274,13 +275,6 @@ export default function App() {
         {/* <color attach="background" args={[backgroundColor]} /> */}
 
         {/* <axesHelper args={[5]} /> */}
-        {/* <PerspectiveCamera makeDefault position={[0, 0, 10]} fov={60} /> */}
-        
-        {/* <OrbitControls /> */}
-        {/* <OrbitControls autoRotate autoRotateSpeed={0.05} enableZoom={false} makeDefault minPolarAngle={Math.PI / 2} maxPolarAngle={Math.PI / 2} /> */}
-        
-        {/* <fog attach="fog" args={['black', 15, 22.5]} /> */}
-        {/* <SoftShadows /> */}
 
         {/* <CameraMovement 
           cameraGroupRef={cameraOffsetGroupRef} 
@@ -290,9 +284,6 @@ export default function App() {
 
         {/* <CameraAnimator particlesRef={particlesRef} /> */}
 
-        {/* <ScreenTransitionWithImg transition={transition} color="#a5b4fc" /> */}
-      
-
         <Experience
           // currentSceneRef={currentSceneRef} 
           // forceUiUpdateRef={forceUiUpdateRef}
@@ -300,65 +291,6 @@ export default function App() {
           currentScene={currentSceneRef.current}
         />
 
-
-
-        {/* <group ref={cameraOffsetGroupRef}>
-          <PerspectiveCamera 
-            ref={initialCameraRef}
-            makeDefault 
-            fov={30} 
-            far={2000} 
-            near={1}
-            zoom={1}
-            position={[0, 10, 20]}
-            // position={[20, 10, 30]} 
-          />
-        </group> */}
-
-        {/* Draggable Camera Position & Target */}
-        {/* <TransformControls object={cameraControlTarget} mode="translate" />
-        <mesh
-          ref={cameraControlTarget}
-          position={[cameraPosition.x, cameraPosition.y, cameraPosition.z]}
-          visible={true}
-        />
-        <TransformControls object={lookAtControlTarget} mode="translate" />
-        <mesh
-          ref={lookAtControlTarget}
-          position={[cameraTarget.x, cameraTarget.y, cameraTarget.z]}
-          visible={true}
-        /> */}
-        
-
-        {/* <Grid 
-          renderOrder={-1} 
-          position={[0, -1.85, 0]} 
-          infiniteGrid 
-          cellSize={0.6} 
-          cellThickness={0.6} 
-          sectionSize={2.3} 
-          sectionThickness={1.5} 
-          // sectionColor={[0.5, 0.5, 10]} 
-          sectionColor={[1, 1, 1]} // Dark red
-          fadeDistance={30} 
-        /> */}
-
-        {/* <ParticlesWavePlane
-          width={150}
-          height={150}
-          segments={500}
-          amplitude={0.1}
-          frequency={2.0}
-          speed={1.5}
-          position={[0, -2, 0]}
-          rotation={[-Math.PI / 2, 0, 1]} // rotate to lay flat
-        /> */}
-
-        {/* <svg width="76" height="90" viewBox="0 0 76 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path className="cls-1" d="M32 89C32 87.4 11.3333 39 1 15L25.5 12L64.5 83" stroke="black"/>
-          <path className="cls-1" d="M39.5 87.5L1.5 4.5L25.5 1L75 81" stroke="black"/>
-          <path className="cls-1" d="M1.5 4.5V15.5L26 12V1L1.5 4.5Z" stroke="black"/>
-        </svg> */}
       </Canvas>
     </>
   );

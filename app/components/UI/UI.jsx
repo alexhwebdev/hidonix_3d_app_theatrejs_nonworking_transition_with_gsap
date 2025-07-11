@@ -345,6 +345,83 @@ export const UI = ({ currentSceneRef, forceUiUpdateRef }) => {
           Section 4
         </motion.h2>
       </motion.section>
+
+
+
+      {/* ---------- Section five ---------- */}
+      <motion.section className={`
+        section_five__container
+        ui__sections 
+
+        `}
+        animate={currentScene === "Scene5" ? "visible" : "hidden"}
+      >
+        <motion.h2
+          variants={{
+            visible: {
+              opacity: 1,
+              y: 0,
+              transition: {
+                delay: 1.5,
+                duration: 0.7,
+              },
+            },
+            hidden: {
+              opacity: 0,
+              y: 150,
+              transition: {
+                // delay: 1.5,
+                duration: 0.7,
+              },
+            },
+          }}
+          initial={{
+            opacity: 0,
+            y: 150,
+          }}
+          className={``}
+        >
+          Section 5
+        </motion.h2>
+      </motion.section>
+
+
+      {/* ---------- Section six ---------- */}
+      <motion.section className={`
+        section_six__container
+        ui__sections 
+
+        `}
+        animate={currentScene === "Scene6" ? "visible" : "hidden"}
+      >
+        <motion.h2
+          variants={{
+            visible: {
+              opacity: 1,
+              y: 0,
+              transition: {
+                delay: 1.5,
+                duration: 0.7,
+              },
+            },
+            hidden: {
+              opacity: 0,
+              y: 150,
+              transition: {
+                // delay: 1.5,
+                duration: 0.7,
+              },
+            },
+          }}
+          initial={{
+            opacity: 0,
+            y: 150,
+          }}
+          className={``}
+        >
+          Section 6
+        </motion.h2>
+      </motion.section>
     </div>
   );
 }
