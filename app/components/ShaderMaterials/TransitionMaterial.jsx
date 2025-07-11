@@ -45,15 +45,15 @@ export const TransitionMaterial = shaderMaterial(
         if (progression < 1.0) {
           // float blend = smoothstep(0.0, 1.0, progression);
           // finalTexture = mix(_texture1, _texture2, blend);
-float p = clamp(progression, 0.0, 1.0);
-float blend = step(1.0 - p, uv.x); // scene1 to scene2
-finalTexture = mix(_texture1, _texture2, blend);
+          float p = clamp(progression, 0.0, 1.0);
+          float blend = step(1.0 - p, uv.x); // scene1 to scene2
+          finalTexture = mix(_texture1, _texture2, blend);
         } else {
           // float blend = smoothstep(1.0, 2.0, progression);
           // finalTexture = mix(_texture2, _texture3, blend);
-float p = clamp(progression - 1.0, 0.0, 1.0);  // value from 0 → 1
-float blend = step(1.0 - p, uv.x); // exactly like Scene1→2
-finalTexture = mix(_texture2, _texture3, blend);
+          float p = clamp(progression - 1.0, 0.0, 1.0);  // value from 0 → 1
+          float blend = step(1.0 - p, uv.x); // exactly like Scene1→2
+          finalTexture = mix(_texture2, _texture3, blend);
         }
       }
 

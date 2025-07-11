@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useReducer, useRef } from "react";
+import { useEffect, useLayoutEffect, useReducer, useRef, useState } from "react";
 import * as THREE from "three";
 import { Canvas, extend, useThree, useFrame, invalidate } from "@react-three/fiber";
 import { 
@@ -61,6 +61,7 @@ const cameraTargets = {
 };
 
 export default function App() {
+  const [currentScene, setCurrentScene] = useState("Scene1");
   const initialCameraRef = useRef();
   const cameraOffsetGroupRef = useRef();
   const cameraControlTarget = useRef();
@@ -87,7 +88,7 @@ export default function App() {
 
 
   const [sceneGroup, setSceneGroup] = useAtom(sceneGroupAtom);
-  console.log('sceneGroup ', sceneGroup)
+  // console.log('sceneGroup ', sceneGroup)
 
   const initialCameraPosition = { x: -7, y: 5, z: 6.5 };
   // INITIAL PAGE LOAD ANIMATION
@@ -228,19 +229,20 @@ export default function App() {
 
   useEffect(() => {
     const handleScroll = () => {
+      // console.log('sceneGroup ', sceneGroup)
       const index = Math.round(window.scrollY / window.innerHeight);
       const nextScene = sceneOrder[Math.max(0, Math.min(sceneOrder.length - 1, index))];
       const prevScene = currentSceneRef.current;
 
       if (prevScene && nextScene !== prevScene) {
-        // ✅ Trigger teleportation if going from Scene3 to Scene4
         if (prevScene === "Scene3" && nextScene === "Scene4") {
           setTransitionTrigger(true);
         }
 
         prevSceneRef.current = prevScene;
-
         currentSceneRef.current = nextScene;
+        setCurrentScene(nextScene);
+
         TriggerUiChange();
       }
     };
@@ -295,6 +297,7 @@ export default function App() {
           // currentSceneRef={currentSceneRef} 
           // forceUiUpdateRef={forceUiUpdateRef}
           sceneGroup={sceneGroup}
+          currentScene={currentSceneRef.current}
         />
 
 

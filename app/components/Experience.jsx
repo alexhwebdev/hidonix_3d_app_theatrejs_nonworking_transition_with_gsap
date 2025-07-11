@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { MathUtils, Vector3 } from "three";
 import { DEG2RAD } from "three/src/math/MathUtils";
 import * as THREE from "three";
+import gsap from "gsap";
 
 import ParticlesHoverPlane from "./ParticlesHoverPlane/ParticlesHoverPlane";
 import SceneTwo from "./SceneTwo";
@@ -21,7 +22,8 @@ import SceneThree from "./SceneThree";
 const nbModes = 2;
 
 export const Experience = ({ 
-  sceneGroup
+  sceneGroup,
+  currentScene
 }) => {
   // // NOT SURE IF THIS IS NEEDED WITH sceneGroup
   // const focusTargetRef = useRef(new Vector3(0, 0, 0));
@@ -31,6 +33,8 @@ export const Experience = ({
   //     focusTargetRef.current.copy(focusTargetVisualizerRef.current.position);
   //   }
   // });
+
+  // console.log("sceneGroup ", sceneGroup)
   const environmentMap = useEnvironment({ preset: "sunset" });
 
 
@@ -47,16 +51,17 @@ export const Experience = ({
   const renderTarget2 = useFBO();
   const renderTarget3 = useFBO();
   const renderMaterial = useRef();
-  const [mode, setMode] = useState(0);
-  const [prevMode, setPrevMode] = useState(0);
+  // const [mode, setMode] = useState(0);
+  // const [prevMode, setPrevMode] = useState(0);
 
   const { scene: modernStadiumScene } = useGLTF("/models/vallourec_stadium_draco.glb");
 
   const renderCamera = useRef();
   const controls = useRef();
 
-  const progressionRef = useRef(0); // 0 to 1
+  const progressionRef = useRef({ value: 0 }); // 0 to 1
   const scrollSpeed = 0.9;
+  const prevSceneRef = useRef(null);
 
   // Add contents to those scenes (with useEffect to avoid rerenders)
   useEffect(() => {
@@ -65,41 +70,61 @@ export const Experience = ({
     if (thirdScene.current) thirdRenderScene.current.add(thirdScene.current);
   }, []);
 
-useEffect(() => {
-  firstRenderScene.current.environment = environmentMap;
-  firstRenderScene.current.background = environmentMap;
-
-  secondRenderScene.current.environment = environmentMap;
-  secondRenderScene.current.background = environmentMap;
-
-  thirdRenderScene.current.environment = environmentMap;
-  thirdRenderScene.current.background = environmentMap;
-}, [environmentMap]);
+  useEffect(() => {
+    [firstRenderScene, secondRenderScene, thirdRenderScene].forEach((sceneRef) => {
+      sceneRef.current.environment = environmentMap;
+      sceneRef.current.background = environmentMap;
+    });
+  }, [environmentMap]);
 
   useEffect(() => {
-    progressionRef.current = 0;
-    if (renderMaterial.current) renderMaterial.current.progression = 0;
-  }, []);
+    if (!currentScene) return;
+    const prevScene = prevSceneRef.current;
+    prevSceneRef.current = currentScene;
 
+    const timeline = gsap.timeline();
+    const pRef = progressionRef.current;
 
-  useEffect(() => {
-    if (mode === prevMode) {
-      return;
+    if (currentScene === "Scene3" && prevScene === "Scene2") {
+      pRef.value = 0;
+      timeline.to(pRef, {
+        value: 1.0,
+        duration: 2,
+        ease: "power2.inOut"
+      }).to(pRef, {
+        value: 2.0,
+        duration: 2,
+        ease: "power2.inOut",
+        delay: 0.3
+      });
+      // return;
     }
-    renderMaterial.current.progression = 0;
-  }, [mode]);
+
+    if (currentScene === "Scene2" && prevScene === "Scene3") {
+      pRef.value = 2.0;
+      timeline.to(pRef, {
+        value: 1.0,
+        duration: 2,
+        ease: "power2.inOut"
+      }).to(pRef, {
+        value: 0.0,
+        duration: 2,
+        ease: "power2.inOut",
+        delay: 0.3
+      });
+    }
+
+    return () => timeline.kill();
+  }, [currentScene]);
+
+  // useEffect(() => {
+  //   if (mode === prevMode) {
+  //     return;
+  //   }
+  //   renderMaterial.current.progression = 0;
+  // }, [mode]);
 
   const MAX_PROGRESS = 2.0;
-
-  // Listen to scroll and update progression
-  useEffect(() => {
-    const handleScroll = (e) => {
-      progressionRef.current += e.deltaY * 0.001 * scrollSpeed;
-      progressionRef.current = MathUtils.clamp(progressionRef.current, 0, MAX_PROGRESS);
-    };
-    window.addEventListener("wheel", handleScroll);
-    return () => window.removeEventListener("wheel", handleScroll);
-  }, []);
 
   // console.log("progressionRef", progressionRef);
 
@@ -115,42 +140,32 @@ useEffect(() => {
     );
   }, []);
 
-  useFrame(({ gl, scene }, delta) => {
-    console.log("scene ", scene)
-    renderMaterial.current.progression = progressionRef.current;
-    // renderMaterial.current.progression = MathUtils.lerp(
-    //   renderMaterial.current.progression,
-    //   1.0,
-    //   delta * transitionSpeed
-    // );
+  useEffect(() => {
+    controls.current.camera = renderCamera.current;
+    controls.current.setLookAt(
+      2.0146, 2.8228, 10.5870,
+      1.0858, 1.9366, 1.7546
+    );
+  }, []);
 
-    // --------------- Render SceneOne into renderTarget1
-    // firstScene.current.visible = true;
+  useFrame(({ gl }) => {
+    if (renderMaterial.current) {
+      renderMaterial.current.progression = progressionRef.current.value;
+    }
+
     gl.setRenderTarget(renderTarget1);
     gl.clear();
-    // gl.render(firstScene.current, renderCamera.current);
     gl.render(firstRenderScene.current, renderCamera.current);
 
-    // --------------- Render SceneTwo into renderTarget2
-    // secondScene.current.visible = true;
-    // firstScene.current.visible = false; // Hide first scene to avoid rendering it again
     gl.setRenderTarget(renderTarget2);
     gl.clear();
-    // gl.render(secondScene.current, renderCamera.current);
     gl.render(secondRenderScene.current, renderCamera.current);
-    // secondScene.current.visible = false; // Hide second scene to avoid rendering it again
 
-    // --------------- Third Scene
-    // thirdScene.current.visible = true;
-    // secondScene.current.visible = false;
     gl.setRenderTarget(renderTarget3);
     gl.clear();
     gl.render(thirdRenderScene.current, renderCamera.current);
-    // thirdScene.current.visible = false;
 
-    // Final pass: show FBO1 (or blended tex1/tex2)
-    gl.setRenderTarget(null); // Reset render target to default so we can see the result in the canvas.
-    // renderMaterial.current.map = renderTarget1.texture;
+    gl.setRenderTarget(null);
   });
 
   return (
@@ -195,8 +210,9 @@ useEffect(() => {
           ref={renderMaterial}
           tex1={renderTarget1.texture}
           tex2={renderTarget2.texture}
+          tex3={renderTarget3.texture}
           toneMapped={false}
-          //transition={0} // 0 = horizontal, 1 = vertical
+          transition={0} // 0 = horizontal, 1 = vertical
         /> */}
       </mesh>
 
@@ -216,8 +232,10 @@ useEffect(() => {
         <mesh position-x={1}>
           <sphereGeometry args={[1, 32, 32]} />
           <meshStandardMaterial color="red" />
+
+          <SceneOne />
         </mesh>
-        <SceneOne />
+
         <ParticlesHoverPlane  
           width={50}
           height={50}

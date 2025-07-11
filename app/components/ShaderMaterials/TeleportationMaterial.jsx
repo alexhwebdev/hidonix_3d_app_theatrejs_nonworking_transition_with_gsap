@@ -5,6 +5,7 @@ export const TeleportationMaterial = shaderMaterial(
     progression: 0,
     tex1: null,
     tex2: null,
+    tex3: null,
   },
   /*glsl*/ `
     varying vec2 vUv;
@@ -18,6 +19,7 @@ export const TeleportationMaterial = shaderMaterial(
     uniform float progression;
     uniform sampler2D tex1;
     uniform sampler2D tex2;
+    uniform sampler2D tex3;
 
     vec2 distort(vec2 olduv, float pr, float expo) {
       vec2 p0 = 2.0 * olduv - 1.0;
@@ -31,6 +33,9 @@ export const TeleportationMaterial = shaderMaterial(
       vec2 uv2 = distort(vUv, -10.0 * (1.0 - progress1), progression * 4.0);
       vec4 s360 = texture2D(tex1, uv2);
       vec4 sAlt = texture2D(tex2, uv1);
+      vec4 s3 = texture2D(tex3, uv1);
+
+
       gl_FragColor = mix(sAlt, s360, progress1);
     }
   `
