@@ -1,0 +1,90 @@
+
+
+.ui__sections {
+  color: red; 
+  font-size: 5rem; 
+  inset: 0;
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  z-index: 9999;
+  transition: opacity 1s ease;
+}
+
+
+.page-wrapper {
+  // border: 5px solid gray;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+
+  .white-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    opacity: 1;
+    pointer-events: none;
+    transition: opacity 2s ease-in-out;
+    z-index: 10;
+  
+    &.fade-out {
+      opacity: 0;
+    }
+  }
+
+  // .canvas-wrapper {
+  //   opacity: 1;
+  //   transition: opacity 2s ease-in-out;
+  //   // position: fixed;
+  
+  //   &.fade-in {
+  //     opacity: 1;
+  //   }
+
+  //   // .main_page {
+  //   //   border: 2px solid pink;
+  //   //   width: 100vw;
+  //   //   position: relative;
+    
+  //   //   > div {
+  //   //     > div {
+  //   //       canvas {
+  //   //         // optional border for debugging
+  //   //       }
+    
+  //   //       > div {
+  //   //         // deeper nested div
+  //   //       }
+    
+  //   //       div:nth-of-type(3) {
+  //   //         border: 2px solid cyan;
+  //   //         width: 100vw;
+  //   //         height: 100%;
+  //   //         top: -50% !important;
+  //   //         left: -50% !important;
+    
+  //   //         div.html_container {
+  //   //           // border: 10px solid orange;
+  //   //           width: 100%;
+  //   //           height: 100vh;
+  //   //           position: relative;
+  //   //         }
+  //   //       }
+  //   //     }
+  //   //   }
+  //   // }
+  // }
+
+}
+
+
+
+
+
+
+
+

@@ -1,0 +1,49 @@
+{
+  "name": "hidonix",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "sitemap": "next-sitemap"
+  },
+  "dependencies": {
+    "@gsap/react": "^2.1.2",
+    "@react-three/drei": "^10.0.4",
+    "@react-three/fiber": "^9.0.4",
+    "@react-three/postprocessing": "^3.0.4",
+    "axios": "^1.9.0",
+    "framer-motion": "^10.16.4",
+    "glslify": "^7.1.1",
+    "gsap": "^3.12.7",
+    "jotai": "^2.12.5",
+    "leva": "^0.10.0",
+    "lil-gui": "^0.20.0",
+    "meshline": "^3.3.1",
+    "next": "15.1.7",
+    "next-intl": "^3.26.5",
+    "next-sitemap": "^4.2.3",
+    "next-themes": "^0.4.4",
+    "react": "^19.0.0",
+    "react-datocms": "^7.1.0",
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.55.0",
+    "sass": "^1.87.0",
+    "simplex-noise": "^4.0.3",
+    "three": "^0.174.0",
+    "threejs-toys": "^0.0.8"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "babel-plugin-import-graphql": "^2.8.1",
+    "eslint": "^9",
+    "eslint-config-next": "15.1.7",
+    "sass": "^1.85.0",
+    "typescript": "^5"
+  }
+}

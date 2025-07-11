@@ -1,0 +1,110 @@
+.ui__container {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+
+  .ui__sections {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;         // ensure it covers full viewport
+    pointer-events: none; // let pointer events fall through to canvas
+    z-index: 2;
+
+    * {
+      pointer-events: auto;
+    }
+    // background-color: rgba(255, 0, 0, 0.1);
+  }
+  .ui__hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .section_one__container {
+    // border: 5px solid blue;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    // position: relative;
+
+    .section_one__copy {
+      // border: 5px solid pink;
+      width: 70%;
+      height: fit-content;
+      // background-color: white;
+      // display: block;
+      font-family: 'Open sans', sans-serif;
+      position: absolute;
+
+      bottom: 150px;
+      left: 50px;
+
+      h1 {
+        color: #086198;
+        font-size: 4rem;
+        font-weight: 500;
+
+        div {
+          // border: 1px solid red;
+          display: inline-block;
+          float: left;
+          overflow: hidden;
+          padding-right: 15px;
+
+          span {
+            display: inline-block;
+            // transform: translateY(100%);
+            opacity: 0,
+          }
+        }
+      }
+      p {
+        color: #086198;
+        float: left;
+        line-height: 100%;
+        margin: 0;
+        opacity: 0;
+        padding: 0;
+        position: relative;
+        top: -8px;
+        left: -15px;
+      }
+    }
+  }
+}
+
+
+// .section_one {
+//   animation: fadeIn 1s ease-out forwards;
+//   animation-delay: 0.2s;
+// }
+
+// .section_two {
+//   animation: fadeIn 1s ease-out forwards;
+//   animation-delay: 0.4s;
+// }
+
+// .section_three {
+//   animation: fadeIn 1s ease-out forwards;
+//   animation-delay: 0.6s;
+// }
+// @keyframes fadeIn {
+//   from {
+//     opacity: 0;
+//     transform: translateY(40px);
+//   }
+//   to {
+//     opacity: 1;
+//     transform: translateY(0);
+//   }
+// }
+
+
+
+// If you have interactive elements inside these sections (e.g. buttons), override like this:
+// .ui__sections button,
+// .ui__sections a {
+//   pointer-events: auto; // Re-enable for specific elements
+// }
