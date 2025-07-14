@@ -88,7 +88,7 @@ export default function SceneTwo({
             >
               <meshStandardMaterial
                 // wireframe={true}
-                color="blue"
+                color="teal"
                 metalness={0.1}
                 roughness={0.1}
                 envMapIntensity={1}

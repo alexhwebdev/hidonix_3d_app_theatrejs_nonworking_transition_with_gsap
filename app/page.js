@@ -47,19 +47,6 @@ const sceneOrder = [
   "Scene4", "Scene5", "Scene6", 
 ];
 
-const cameraPositions = {
-  Scene1: { x: -7, y: 5, z: 6.5 },
-  Scene2: { x: -1, y: 14.5, z: -5.05 },
-  Scene3: { x: -4.579, y: 1.697, z: 2.177 },
-  // Scene4: { x: -4.579, y: 1.697, z: 2.177 },
-};
-
-const cameraTargets = {
-  Scene1: { x: 0, y: -1, z: 0 },
-  Scene2: { x: 0, y: 0, z: -5.043 },
-  Scene3: { x: -2.034, y: 0.464, z: 0.550 },
-  // Scene4: { x: -2.034, y: 0.464, z: 0.550 },
-};
 
 export default function App() {
   const [currentScene, setCurrentScene] = useState("Scene1");
@@ -71,7 +58,7 @@ export default function App() {
   
   const scrollLock = useRef(false);
   const forceUiUpdateRef = useRef(null);
-  const particlesRef = useRef();
+  // const particlesRef = useRef();
   // console.log("App currentSceneRef:", currentSceneRef);
   // console.log("App forceUiUpdateRef:", forceUiUpdateRef);
 
@@ -89,117 +76,116 @@ export default function App() {
 
 
   const [sceneGroup, setSceneGroup] = useAtom(sceneGroupAtom);
-  // console.log('sceneGroup ', sceneGroup)
 
-  const initialCameraPosition = { x: -7, y: 5, z: 6.5 };
   // INITIAL PAGE LOAD ANIMATION
-  useEffect(() => {
-    let raf;
+  // const initialCameraPosition = { x: -7, y: 5, z: 6.5 };
+  // useEffect(() => {
+  //   let raf;
 
-    function tryAnimateCamera() {
-      const cam = initialCameraRef.current;
-      if (!cam) {
-        raf = requestAnimationFrame(tryAnimateCamera);
-        return;
-      }
-      // Starting position, before Scene1
-      cam.position.set(12, 2, 7);
+  //   function tryAnimateCamera() {
+  //     const cam = initialCameraRef.current;
+  //     if (!cam) {
+  //       raf = requestAnimationFrame(tryAnimateCamera);
+  //       return;
+  //     }
+  //     // Starting position, before Scene1
+  //     cam.position.set(12, 2, 7);
 
-      gsap.to(cam.position, {
-        // ...cameraPosition,
-        ...initialCameraPosition,
-        duration: 2,
-        ease: "power2.inOut",
-        onUpdate: () => invalidate(),
-        onComplete: () => {
-          // cam.lookAt(
-          //   initialCameraTarget.x,
-          //   initialCameraTarget.y,
-          //   initialCameraTarget.z
-          // );
-          TriggerUiChange();
-          particlesRef.current?.resetMouse?.();
-        }
-      });
-    }
+  //     gsap.to(cam.position, {
+  //       // ...cameraPosition,
+  //       ...initialCameraPosition,
+  //       duration: 2,
+  //       ease: "power2.inOut",
+  //       onUpdate: () => invalidate(),
+  //       onComplete: () => {
+  //         // cam.lookAt(
+  //         //   initialCameraTarget.x,
+  //         //   initialCameraTarget.y,
+  //         //   initialCameraTarget.z
+  //         // );
+  //         TriggerUiChange();
+  //         particlesRef.current?.resetMouse?.();
+  //       }
+  //     });
+  //   }
 
-    tryAnimateCamera();
+  //   tryAnimateCamera();
 
-    return () => cancelAnimationFrame(raf);
-  }, []);
+  //   return () => cancelAnimationFrame(raf);
+  // }, []);
 
   function TriggerUiChange() {
     forceUiUpdateRef.current?.(); // 🔁 this will re-render SceneUI
   }
 
-  function CameraAnimator({ particlesRef }) {    
-    // ---------- UNCOMMENT WHEN DONE WITH PLOTTING X, Y, Z COORDINATES
-    // ---------- Handle scene transitions ----------
-    const { camera } = useThree();
-    const activeScene = useRef(null);
-    const lookAtTarget = useRef(new THREE.Vector3()); // store lookAt separately for animation
+  // function CameraAnimator({ particlesRef }) {    
+  //   // ---------- UNCOMMENT WHEN DONE WITH PLOTTING X, Y, Z COORDINATES
+  //   // ---------- Handle scene transitions ----------
+  //   const { camera } = useThree();
+  //   const activeScene = useRef(null);
+  //   const lookAtTarget = useRef(new THREE.Vector3()); // store lookAt separately for animation
 
-    // Always make camera look at the animated target
-    useFrame(() => {
-      camera.lookAt(lookAtTarget.current);
-    });
+  //   // Always make camera look at the animated target
+  //   useFrame(() => {
+  //     camera.lookAt(lookAtTarget.current);
+  //   });
 
-    useFrame(() => {
-      const target = currentSceneRef.current;
-      if (!target || activeScene.current === target) return;
-      activeScene.current = target;
+  //   useFrame(() => {
+  //     const target = currentSceneRef.current;
+  //     if (!target || activeScene.current === target) return;
+  //     activeScene.current = target;
 
-      const camPos = cameraPositions[target];
-      const camTarget = cameraTargets[target];
-      if (!camPos || !camTarget) return;
+  //     const camPos = cameraPositions[target];
+  //     const camTarget = cameraTargets[target];
+  //     if (!camPos || !camTarget) return;
 
-      const fromTarget = lookAtTarget.current.clone();
-      const toTarget = new THREE.Vector3(camTarget.x, camTarget.y, camTarget.z);
+  //     const fromTarget = lookAtTarget.current.clone();
+  //     const toTarget = new THREE.Vector3(camTarget.x, camTarget.y, camTarget.z);
 
-      // Animate camera position
-      gsap.to(camera.position, {
-        x: camPos.x,
-        y: camPos.y,
-        z: camPos.z,
-        duration: 2,
-        ease: "power2.inOut",
-        onUpdate: () => invalidate(),
-      });
+  //     // Animate camera position
+  //     gsap.to(camera.position, {
+  //       x: camPos.x,
+  //       y: camPos.y,
+  //       z: camPos.z,
+  //       duration: 2,
+  //       ease: "power2.inOut",
+  //       onUpdate: () => invalidate(),
+  //     });
 
-      // Animate camera lookAt target
-      gsap.to(fromTarget, {
-        x: toTarget.x,
-        y: toTarget.y,
-        z: toTarget.z,
-        duration: 2,
-        ease: "power2.inOut",
-        onUpdate: () => {
-          camera.lookAt(fromTarget);
-          invalidate();
-        },
-        onComplete: () => {
-          lookAtTarget.current.copy(toTarget);
-          particlesRef.current?.resetMouse();
-          // TriggerUiChange();
-        }
-      });
+  //     // Animate camera lookAt target
+  //     gsap.to(fromTarget, {
+  //       x: toTarget.x,
+  //       y: toTarget.y,
+  //       z: toTarget.z,
+  //       duration: 2,
+  //       ease: "power2.inOut",
+  //       onUpdate: () => {
+  //         camera.lookAt(fromTarget);
+  //         invalidate();
+  //       },
+  //       onComplete: () => {
+  //         lookAtTarget.current.copy(toTarget);
+  //         particlesRef.current?.resetMouse();
+  //         // TriggerUiChange();
+  //       }
+  //     });
 
-      // Animate lookAt target
-      gsap.to(lookAtTarget.current, {
-        x: camTarget.x,
-        y: camTarget.y,
-        z: camTarget.z,
-        duration: 2,
-        ease: "power2.inOut",
-        onUpdate: () => invalidate(),
-        onComplete: () => {
-          particlesRef.current?.resetMouse?.();
-          // TriggerUiChange();
-        },
-      });
-    });
-    return null;
-  }
+  //     // Animate lookAt target
+  //     gsap.to(lookAtTarget.current, {
+  //       x: camTarget.x,
+  //       y: camTarget.y,
+  //       z: camTarget.z,
+  //       duration: 2,
+  //       ease: "power2.inOut",
+  //       onUpdate: () => invalidate(),
+  //       onComplete: () => {
+  //         particlesRef.current?.resetMouse?.();
+  //         // TriggerUiChange();
+  //       },
+  //     });
+  //   });
+  //   return null;
+  // }
 
   // Scroll-based scene switching
   useEffect(() => {
@@ -274,7 +260,7 @@ export default function App() {
       >
         {/* <color attach="background" args={[backgroundColor]} /> */}
 
-        {/* <axesHelper args={[5]} /> */}
+        <axesHelper args={[5]} />
 
         {/* <CameraMovement 
           cameraGroupRef={cameraOffsetGroupRef} 

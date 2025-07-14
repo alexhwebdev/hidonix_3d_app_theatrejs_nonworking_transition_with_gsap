@@ -7,7 +7,7 @@ import {
   useFBO,
   useGLTF,
 } from "@react-three/drei";
-import { extend, useFrame, useThree } from "@react-three/fiber";
+import { extend, invalidate, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef, useState } from "react";
 import { MathUtils, Vector3 } from "three";
 import { DEG2RAD } from "three/src/math/MathUtils";
@@ -54,6 +54,11 @@ export const Experience = ({
   // const [mode, setMode] = useState(0);
   // const [prevMode, setPrevMode] = useState(0);
 
+  const particlesRef = useRef();
+
+  // First scene camera
+  const firstSceneCamera = useRef();
+
   const { scene: modernStadiumScene } = useGLTF("/models/vallourec_stadium_draco.glb");
 
   const renderCamera = useRef();
@@ -62,6 +67,20 @@ export const Experience = ({
   const progressionRef = useRef({ value: 0 }); // 0 to 1
   const scrollSpeed = 0.9;
   const prevSceneRef = useRef(null);
+
+  const cameraPositions = {
+    Scene1: { x: -7, y: 5, z: 6.5 },
+    Scene2: { x: -1, y: 14.5, z: -5.05 },
+    Scene3: { x: -4.579, y: 1.697, z: 2.177 },
+    // Scene4: { x: -4.579, y: 1.697, z: 2.177 },
+  };
+
+  const cameraTargets = {
+    Scene1: { x: 0, y: -1, z: 0 },
+    Scene2: { x: 0, y: 0, z: -5.043 },
+    Scene3: { x: -2.034, y: 0.464, z: 0.550 },
+    // Scene4: { x: -2.034, y: 0.464, z: 0.550 },
+  };
 
   // Add contents to those scenes (with useEffect to avoid rerenders)
   useEffect(() => {
@@ -131,18 +150,6 @@ export const Experience = ({
   useEffect(() => {
     controls.current.camera = renderCamera.current;
     controls.current.setLookAt(
-      2.0146,
-      2.8228,
-      10.5870,
-      1.0858,
-      1.9366,
-      1.7546
-    );
-  }, []);
-
-  useEffect(() => {
-    controls.current.camera = renderCamera.current;
-    controls.current.setLookAt(
       2.0146, 2.8228, 10.5870,
       1.0858, 1.9366, 1.7546
     );
@@ -155,7 +162,7 @@ export const Experience = ({
 
     gl.setRenderTarget(renderTarget1);
     gl.clear();
-    gl.render(firstRenderScene.current, renderCamera.current);
+    gl.render(firstRenderScene.current, firstSceneCamera.current); // ✅ SceneOne uses its own camera
 
     gl.setRenderTarget(renderTarget2);
     gl.clear();
@@ -168,9 +175,65 @@ export const Experience = ({
     gl.setRenderTarget(null);
   });
 
+  useEffect(() => {
+    if (firstSceneCamera.current) {
+      firstRenderScene.current.add(firstSceneCamera.current);
+    }
+  }, []);
+
+  function CameraAnimator({ cameraRef, sceneName }) {
+    const activeScene = useRef(null);
+    const lookAtTarget = useRef(new THREE.Vector3());
+
+    useFrame(() => {
+      if (!cameraRef.current) return;
+      cameraRef.current.lookAt(lookAtTarget.current);
+    });
+
+    useEffect(() => {
+      const camera = cameraRef.current;
+      if (!camera || activeScene.current === sceneName) return;
+      activeScene.current = sceneName;
+
+      const camPos = cameraPositions[sceneName];
+      const camTarget = cameraTargets[sceneName];
+      if (!camPos || !camTarget) return;
+
+      const fromTarget = lookAtTarget.current.clone();
+      const toTarget = new THREE.Vector3(camTarget.x, camTarget.y, camTarget.z);
+
+      gsap.to(camera.position, {
+        ...camPos,
+        duration: 2,
+        ease: "power2.inOut",
+        onUpdate: () => invalidate()
+      });
+
+      gsap.to(fromTarget, {
+        ...toTarget,
+        duration: 2,
+        ease: "power2.inOut",
+        onUpdate: () => {
+          camera.lookAt(fromTarget);
+          invalidate();
+        },
+        onComplete: () => {
+          lookAtTarget.current.copy(toTarget);
+          particlesRef.current?.resetMouse();
+        }
+      });
+    }, [sceneName]);
+
+    return null;
+  }
+
+
   return (
     <>
-      <PerspectiveCamera near={0.5} ref={renderCamera} />
+      <PerspectiveCamera 
+        near={0.5} 
+        ref={renderCamera} 
+      />
       <CameraControls
         enablePan={false}
         minPolarAngle={DEG2RAD * 70}
@@ -220,6 +283,18 @@ export const Experience = ({
         ref={firstScene}
         // visible={sceneGroup === "SceneGroupOne"}
       >
+        <PerspectiveCamera
+          ref={firstSceneCamera}
+          makeDefault={false} // Don't override global default camera
+          position={[12, 2, 7]} // starting point
+        />
+
+        <CameraAnimator 
+          cameraRef={firstSceneCamera}
+          sceneName={currentScene}
+          // particlesRef={particlesRef} 
+        />
+
         <Environment preset="sunset" blur={0.4} background />
         {/* <ambientLight intensity={0.3} /> */}
         {/* <directionalLight position={[10, 0, 0]} intensity={0.7} castShadow /> */}

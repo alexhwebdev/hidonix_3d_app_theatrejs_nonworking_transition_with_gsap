@@ -46,12 +46,12 @@ export default function SceneOne({
         // position={position}
         // rotation={rotation}
       />
-
-      <group position={position} scale={scale}>
+      
+      {/* NO PILLARS */}
+      {/* <group position={position} scale={scale}>
         {meshes.map((mesh, i) => (
           <group key={i}>
-            {/* NO PILLARS */}
-            {/* <mesh
+            <mesh
               geometry={mesh.geometry}
               position={mesh.position}
               rotation={mesh.rotation}
@@ -65,10 +65,10 @@ export default function SceneOne({
                 // transparent
                 // wireframe={true}
               />
-            </mesh> */}
+            </mesh>
           </group>
         ))}
-      </group>
+      </group> */}
     </>
   )
 }
