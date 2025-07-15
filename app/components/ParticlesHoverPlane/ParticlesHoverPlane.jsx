@@ -5,6 +5,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 const ParticlesHoverPlane = ({
+  camera,
   width = 1,
   height = 1,
   segments = 100,
@@ -14,7 +15,7 @@ const ParticlesHoverPlane = ({
   rotation = [0, 0, 0],
 }) => {
   const meshRef = useRef();
-  const { size, camera } = useThree();
+  const { size } = useThree();
   const count = segments * segments;
 
   // Uniform grid (no initial jitter)
@@ -47,7 +48,9 @@ const ParticlesHoverPlane = ({
       const x = (event.clientX / size.width) * 2 - 1;
       const y = -(event.clientY / size.height) * 2 + 1;
       const raycaster = new THREE.Raycaster();
-      raycaster.setFromCamera(new THREE.Vector2(x, y), camera);
+      if (!camera?.current) return;
+      raycaster.setFromCamera(new THREE.Vector2(x, y), camera.current);
+      
       const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
       if (meshRef.current) {
         plane.applyMatrix4(meshRef.current.matrixWorld);

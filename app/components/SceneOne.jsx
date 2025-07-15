@@ -7,10 +7,13 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader'
 import * as THREE from 'three'
 
+import ParticlesHoverPlane from './ParticlesHoverPlane/ParticlesHoverPlane'
+
 export default function SceneOne({ 
+  camera,
   position = [0, 0, 0],
   rotation = [0, 0, 0],
-  scale = [0.1, 0.1, 0.1]
+  scale = [0.3, 0.3, 0.3]
 }) {
   // Load Draco-compressed GLB using GLTFLoader with DRACOLoader
   const gltf = useLoader(GLTFLoader, '/models/vallourec_stadium_draco.glb', (loader) => {
@@ -33,20 +36,34 @@ export default function SceneOne({
 
   return (
     <>
-      {/* <OrbitControls /> */}
+      <OrbitControls />
       <ambientLight intensity={0.05} />
 
-      {/* SHOWS PILLARS */}
-      <primitive 
-        // object={gltf.scene} 
-        object={modernStadiumScene} 
-        // rotation-y={Math.PI / 2} 
-        position={[0, 0, -20]}
-        rotation={[0.2, 0, 0]}
-        // position={position}
-        // rotation={rotation}
+      <group position={position} scale={scale}>
+        {/* SHOWS PILLARS */}
+        <primitive 
+          object={modernStadiumScene}
+          // rotation-y={Math.PI / 2} 
+          // position={[0, 0, -20]}
+          // rotation={[0.2, 0, 0]}
+          position={position}
+          rotation={rotation}
+        />
+      </group>
+      <ParticlesHoverPlane  
+        camera={camera}
+        width={50}
+        height={50}
+        segments={500}
+        liftRadius={3}
+        liftStrength={1.0}
+        // position={[0, -2, 0]}
+        position={[0, 0, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        // rotation={[0, 0, 0]}
       />
-      
+
+
       {/* NO PILLARS */}
       {/* <group position={position} scale={scale}>
         {meshes.map((mesh, i) => (

@@ -21,8 +21,22 @@ import SceneThree from "./SceneThree";
 
 const nbModes = 2;
 
+const cameraPositions = {
+  Scene1: { x: -7, y: 5, z: 6.5 },
+  Scene2: { x: -1, y: 14.5, z: -5.05 },
+  Scene3: { x: -4.579, y: 1.697, z: 2.177 },
+  // Scene4: { x: -4.579, y: 1.697, z: 2.177 },
+};
+
+const cameraTargets = {
+  Scene1: { x: 0, y: -1, z: 0 },
+  Scene2: { x: 0, y: 0, z: -5.043 },
+  Scene3: { x: -2.034, y: 0.464, z: 0.550 },
+  // Scene4: { x: -2.034, y: 0.464, z: 0.550 },
+};
+
 export const Experience = ({ 
-  sceneGroup,
+  // sceneGroup,
   currentScene
 }) => {
   // // NOT SURE IF THIS IS NEEDED WITH sceneGroup
@@ -34,9 +48,9 @@ export const Experience = ({
   //   }
   // });
 
-  // console.log("sceneGroup ", sceneGroup)
-  const environmentMap = useEnvironment({ preset: "sunset" });
-
+  console.log("currentScene ", currentScene)
+  const { scene: modernStadiumScene } = useGLTF("/models/vallourec_stadium_draco.glb");
+  const environmentMap = useEnvironment({ preset: "city" });
 
   const viewport = useThree((state) => state.viewport);
   const firstScene = useRef();
@@ -53,42 +67,26 @@ export const Experience = ({
   const renderMaterial = useRef();
   // const [mode, setMode] = useState(0);
   // const [prevMode, setPrevMode] = useState(0);
-
-  const particlesRef = useRef();
-
+  
   // First scene camera
   const firstSceneCamera = useRef();
-
-  const { scene: modernStadiumScene } = useGLTF("/models/vallourec_stadium_draco.glb");
-
   const renderCamera = useRef();
   const controls = useRef();
 
   const progressionRef = useRef({ value: 0 }); // 0 to 1
-  const scrollSpeed = 0.9;
   const prevSceneRef = useRef(null);
+  const particlesRef = useRef();
+  const scrollSpeed = 0.9;
 
-  const cameraPositions = {
-    Scene1: { x: -7, y: 5, z: 6.5 },
-    Scene2: { x: -1, y: 14.5, z: -5.05 },
-    Scene3: { x: -4.579, y: 1.697, z: 2.177 },
-    // Scene4: { x: -4.579, y: 1.697, z: 2.177 },
-  };
-
-  const cameraTargets = {
-    Scene1: { x: 0, y: -1, z: 0 },
-    Scene2: { x: 0, y: 0, z: -5.043 },
-    Scene3: { x: -2.034, y: 0.464, z: 0.550 },
-    // Scene4: { x: -2.034, y: 0.464, z: 0.550 },
-  };
-
+  // Scene setup, environment configuration
   // Add contents to those scenes (with useEffect to avoid rerenders)
+  // 1. Attaching Scene Contents to Render Scenes
   useEffect(() => {
     if (firstScene.current) firstRenderScene.current.add(firstScene.current);
     if (secondScene.current) secondRenderScene.current.add(secondScene.current);
     if (thirdScene.current) thirdRenderScene.current.add(thirdScene.current);
   }, []);
-
+  // 2. Setting Environment & Background for Each Render Scene
   useEffect(() => {
     [firstRenderScene, secondRenderScene, thirdRenderScene].forEach((sceneRef) => {
       sceneRef.current.environment = environmentMap;
@@ -97,12 +95,33 @@ export const Experience = ({
   }, [environmentMap]);
 
   useEffect(() => {
+    if (firstSceneCamera.current) {
+      firstRenderScene.current.add(firstSceneCamera.current);
+      firstSceneCamera.current.lookAt(0, 0, 0);
+    }
+  }, []);
+
+  useEffect(() => {
     if (!currentScene) return;
     const prevScene = prevSceneRef.current;
     prevSceneRef.current = currentScene;
 
     const timeline = gsap.timeline();
     const pRef = progressionRef.current;
+
+    if (currentScene === "Scene3" && prevScene === "Scene4") {
+      pRef.value = 2.0;
+      timeline.to(pRef, {
+        value: 1.0,
+        duration: 2,
+        ease: "power2.inOut"
+      }).to(pRef, {
+        value: 0.0,
+        duration: 2,
+        ease: "power2.inOut",
+        delay: 0.3
+      });
+    }
 
     if (currentScene === "Scene4" && prevScene === "Scene3") {
       pRef.value = 0;
@@ -119,20 +138,6 @@ export const Experience = ({
       // return;
     }
 
-    if (currentScene === "Scene3" && prevScene === "Scene4") {
-      pRef.value = 2.0;
-      timeline.to(pRef, {
-        value: 1.0,
-        duration: 2,
-        ease: "power2.inOut"
-      }).to(pRef, {
-        value: 0.0,
-        duration: 2,
-        ease: "power2.inOut",
-        delay: 0.3
-      });
-    }
-
     return () => timeline.kill();
   }, [currentScene]);
 
@@ -145,15 +150,13 @@ export const Experience = ({
 
   const MAX_PROGRESS = 2.0;
 
-  // console.log("progressionRef", progressionRef);
-
-  useEffect(() => {
-    controls.current.camera = renderCamera.current;
-    controls.current.setLookAt(
-      2.0146, 2.8228, 10.5870,
-      1.0858, 1.9366, 1.7546
-    );
-  }, []);
+  // useEffect(() => {
+  //   controls.current.camera = renderCamera.current;
+  //   controls.current.setLookAt(
+  //     2.0146, 2.8228, 10.5870,
+  //     1.0858, 1.9366, 1.7546
+  //   );
+  // }, []);
 
   useFrame(({ gl }) => {
     if (renderMaterial.current) {
@@ -175,57 +178,134 @@ export const Experience = ({
     gl.setRenderTarget(null);
   });
 
-  useEffect(() => {
-    if (firstSceneCamera.current) {
-      firstRenderScene.current.add(firstSceneCamera.current);
-    }
-  }, []);
 
-  function CameraAnimator({ cameraRef, sceneName }) {
-    const activeScene = useRef(null);
-    const lookAtTarget = useRef(new THREE.Vector3());
 
-    useFrame(() => {
-      if (!cameraRef.current) return;
-      cameraRef.current.lookAt(lookAtTarget.current);
-    });
+  // function CameraAnimator({ cameraRef, sceneName }) {
+  //   const activeScene = useRef(null);
+  //   const lookAtTarget = useRef(new THREE.Vector3());
 
-    useEffect(() => {
-      const camera = cameraRef.current;
-      if (!camera || activeScene.current === sceneName) return;
-      activeScene.current = sceneName;
+  //   useFrame(() => {
+  //     if (!cameraRef.current) return;
+  //     cameraRef.current.lookAt(lookAtTarget.current);
+  //   });
 
-      const camPos = cameraPositions[sceneName];
-      const camTarget = cameraTargets[sceneName];
-      if (!camPos || !camTarget) return;
+  //   useEffect(() => {
+  //     const camera = cameraRef.current;
+  //     if (!camera || activeScene.current === sceneName) return;
+  //     activeScene.current = sceneName;
 
-      const fromTarget = lookAtTarget.current.clone();
-      const toTarget = new THREE.Vector3(camTarget.x, camTarget.y, camTarget.z);
+  //     const camPos = cameraPositions[sceneName];
+  //     const camTarget = cameraTargets[sceneName];
+  //     if (!camPos || !camTarget) return;
 
-      gsap.to(camera.position, {
-        ...camPos,
-        duration: 2,
-        ease: "power2.inOut",
-        onUpdate: () => invalidate()
-      });
+  //     const fromTarget = lookAtTarget.current.clone();
+  //     const toTarget = new THREE.Vector3(camTarget.x, camTarget.y, camTarget.z);
 
-      gsap.to(fromTarget, {
-        ...toTarget,
-        duration: 2,
-        ease: "power2.inOut",
-        onUpdate: () => {
-          camera.lookAt(fromTarget);
-          invalidate();
-        },
-        onComplete: () => {
-          lookAtTarget.current.copy(toTarget);
-          particlesRef.current?.resetMouse();
-        }
-      });
-    }, [sceneName]);
+  //     // Animate camera position
+  //     gsap.to(camera.position, {
+  //       x: camPos.x,
+  //       y: camPos.y,
+  //       z: camPos.z,
+  //       duration: 2,
+  //       ease: "power2.inOut",
+  //       onUpdate: () => invalidate()
+  //     });
+      
+  //     // Animate camera lookAt target
+  //     gsap.to(fromTarget, {
+  //       x: toTarget.x,
+  //       y: toTarget.y,
+  //       z: toTarget.z,
+  //       duration: 2,
+  //       ease: "power2.inOut",
+  //       onUpdate: () => {
+  //         camera.lookAt(fromTarget);
+  //         invalidate();
+  //       },
+  //       onComplete: () => {
+  //         lookAtTarget.current.copy(toTarget);
+  //         particlesRef.current?.resetMouse();
+  //       }
+  //     });
+  //   }, [sceneName]);
 
-    return null;
-  }
+  //   return null;
+  // }
+
+
+  // // Test Snippet
+  // useEffect(() => {
+  //   if (!firstSceneCamera.current) return;
+
+  //   const cam = firstSceneCamera.current;
+  //   const lookAtTarget = new THREE.Vector3();
+  //   const tempTarget = new THREE.Vector3();
+
+  //   const steps = [
+  //     {
+  //       fromPos: cameraPositions.Scene1,
+  //       toPos: cameraPositions.Scene2,
+  //       fromLook: cameraTargets.Scene1,
+  //       toLook: cameraTargets.Scene2,
+  //     },
+  //     {
+  //       fromPos: cameraPositions.Scene2,
+  //       toPos: cameraPositions.Scene3,
+  //       fromLook: cameraTargets.Scene2,
+  //       toLook: cameraTargets.Scene3,
+  //     },
+  //     {
+  //       fromPos: cameraPositions.Scene3,
+  //       toPos: cameraPositions.Scene1,
+  //       fromLook: cameraTargets.Scene3,
+  //       toLook: cameraTargets.Scene1,
+  //     }
+  //   ];
+
+  //   // Initialize camera at first position
+  //   cam.position.set(
+  //     steps[0].fromPos.x,
+  //     steps[0].fromPos.y,
+  //     steps[0].fromPos.z
+  //   );
+  //   lookAtTarget.set(
+  //     steps[0].fromLook.x,
+  //     steps[0].fromLook.y,
+  //     steps[0].fromLook.z
+  //   );
+  //   cam.lookAt(lookAtTarget);
+
+  //   const timeline = gsap.timeline({ repeat: 0, repeatDelay: 1 }); // loops
+
+  //   steps.forEach(({ fromPos, toPos, fromLook, toLook }, index) => {
+  //     const proxy = { t: 0 };
+
+  //     timeline.to(proxy, {
+  //       t: 1,
+  //       duration: 2,
+  //       ease: "power2.inOut",
+  //       onUpdate: () => {
+  //         cam.position.set(
+  //           MathUtils.lerp(fromPos.x, toPos.x, proxy.t),
+  //           MathUtils.lerp(fromPos.y, toPos.y, proxy.t),
+  //           MathUtils.lerp(fromPos.z, toPos.z, proxy.t)
+  //         );
+
+  //         tempTarget.set(
+  //           MathUtils.lerp(fromLook.x, toLook.x, proxy.t),
+  //           MathUtils.lerp(fromLook.y, toLook.y, proxy.t),
+  //           MathUtils.lerp(fromLook.z, toLook.z, proxy.t)
+  //         );
+
+  //         cam.lookAt(tempTarget);
+  //         invalidate();
+  //       }
+  //     }, index === 0 ? "+=0.5" : "+=0.3");
+  //   });
+
+  //   return () => timeline.kill();
+  // }, []);
+
 
 
   return (
@@ -235,7 +315,7 @@ export const Experience = ({
         ref={renderCamera} 
       />
       <CameraControls
-        enablePan={false}
+        enablePan={false} // Disables panning, so users can't shift the scene left/right/up/down.
         minPolarAngle={DEG2RAD * 70}
         maxPolarAngle={DEG2RAD * 85}
         minAzimuthAngle={DEG2RAD * -30}
@@ -259,17 +339,10 @@ export const Experience = ({
         }}
       />
 
+      {/* ---------- TRANSITIONS MATERIAL ---------- */}
       <mesh>
         <planeGeometry args={[viewport.width, viewport.height]} />
-        <transitionMaterial
-          ref={renderMaterial}
-          tex1={renderTarget1.texture}
-          tex2={renderTarget2.texture}
-          tex3={renderTarget3.texture}
-          toneMapped={false}
-          transition={0} // 0 = horizontal, 1 = vertical
-        />
-        {/* <teleportationMaterial
+        {/* <transitionMaterial
           ref={renderMaterial}
           tex1={renderTarget1.texture}
           tex2={renderTarget2.texture}
@@ -277,8 +350,17 @@ export const Experience = ({
           toneMapped={false}
           transition={0} // 0 = horizontal, 1 = vertical
         /> */}
+        <teleportationMaterial
+          ref={renderMaterial}
+          tex1={renderTarget1.texture}
+          tex2={renderTarget2.texture}
+          tex3={renderTarget3.texture}
+          toneMapped={false}
+          transition={0} // 0 = horizontal, 1 = vertical
+        />
       </mesh>
 
+      {/* ---------- FIRST SCENE ---------- */}
       <group 
         ref={firstScene}
         // visible={sceneGroup === "SceneGroupOne"}
@@ -287,41 +369,26 @@ export const Experience = ({
           ref={firstSceneCamera}
           makeDefault={false} // Don't override global default camera
           position={[12, 2, 7]} // starting point
+          near={0.5} 
         />
 
-        <CameraAnimator 
+        {/* <CameraAnimator 
           cameraRef={firstSceneCamera}
           sceneName={currentScene}
           // particlesRef={particlesRef} 
-        />
-
-        <Environment preset="sunset" blur={0.4} background />
-        {/* <ambientLight intensity={0.3} /> */}
-        {/* <directionalLight position={[10, 0, 0]} intensity={0.7} castShadow /> */}
-        {/* <primitive 
-          object={modernStadiumScene} 
-          // rotation-y={Math.PI / 2} 
-          position={[0, 0, -20]}
-          rotation={[0.2, 0, 0]}
         /> */}
-        <mesh position-x={1}>
+
+        {/* <mesh position-x={1}>
           <sphereGeometry args={[1, 32, 32]} />
           <meshStandardMaterial color="red" />
 
           <SceneOne />
-        </mesh>
+        </mesh> */}
 
-        <ParticlesHoverPlane  
-          width={50}
-          height={50}
-          segments={500}
-          liftRadius={3}
-          liftStrength={1.0}
-          position={[0, -2, 0]}
-          rotation={[-Math.PI / 2, 0, 0]}
-        />
+        <SceneOne camera={firstSceneCamera} />
       </group>
 
+      {/* ---------- SECOND SCENE ---------- */}
       <group ref={secondScene}>
         <mesh position-x={1}>
           <sphereGeometry args={[1, 32, 32]} />
@@ -336,6 +403,7 @@ export const Experience = ({
         </mesh>
       </group>
 
+      {/* ---------- THIRD SCENE ---------- */}
       <group ref={thirdScene}>
         <mesh position-x={1}>
           <sphereGeometry args={[1, 32, 32]} />

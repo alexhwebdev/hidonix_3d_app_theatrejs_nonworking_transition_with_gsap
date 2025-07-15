@@ -46,7 +46,18 @@ const sceneOrder = [
   "Scene1", "Scene2", "Scene3", 
   "Scene4", "Scene5", "Scene6", 
 ];
-
+// const cameraPositions = {
+//   Scene1: { x: -7, y: 5, z: 6.5 },
+//   Scene2: { x: -1, y: 14.5, z: -5.05 },
+//   Scene3: { x: -4.579, y: 1.697, z: 2.177 },
+//   // Scene4: { x: -4.579, y: 1.697, z: 2.177 },
+// };
+// const cameraTargets = {
+//   Scene1: { x: 0, y: -1, z: 0 },
+//   Scene2: { x: 0, y: 0, z: -5.043 },
+//   Scene3: { x: -2.034, y: 0.464, z: 0.550 },
+//   // Scene4: { x: -2.034, y: 0.464, z: 0.550 },
+// };
 
 export default function App() {
   const [currentScene, setCurrentScene] = useState("Scene1");
@@ -58,21 +69,19 @@ export default function App() {
   
   const scrollLock = useRef(false);
   const forceUiUpdateRef = useRef(null);
-  // const particlesRef = useRef();
-  // console.log("App currentSceneRef:", currentSceneRef);
-  // console.log("App forceUiUpdateRef:", forceUiUpdateRef);
+  const particlesRef = useRef();
 
   const [transition, setTransition] = useAtom(transitionAtom);
 
   const prevSceneRef = useRef("Scene1");
   const [transitionTrigger, setTransitionTrigger] = useAtom(transitionTriggerAtom);
 
-  const { progress } = useProgress();
-  useEffect(() => {
-    if (progress === 100) {
-      setTransition(false);
-    }
-  }, [progress]);
+  // const { progress } = useProgress();
+  // useEffect(() => {
+  //   if (progress === 100) {
+  //     setTransition(false);
+  //   }
+  // }, [progress]);
 
 
   const [sceneGroup, setSceneGroup] = useAtom(sceneGroupAtom);
@@ -119,7 +128,6 @@ export default function App() {
   }
 
   // function CameraAnimator({ particlesRef }) {    
-  //   // ---------- UNCOMMENT WHEN DONE WITH PLOTTING X, Y, Z COORDINATES
   //   // ---------- Handle scene transitions ----------
   //   const { camera } = useThree();
   //   const activeScene = useRef(null);
@@ -188,55 +196,51 @@ export default function App() {
   // }
 
   // Scroll-based scene switching
+  
   useEffect(() => {
+    let scrollLockTimeout;
+
     const handleWheel = (e) => {
       if (scrollLock.current) return;
+
       const direction = e.deltaY > 0 ? 1 : -1;
       const currentIdx = sceneOrder.indexOf(currentSceneRef.current);
       const newIdx = Math.max(0, Math.min(sceneOrder.length - 1, currentIdx + direction));
+
       if (newIdx === currentIdx) return;
 
       const nextScene = sceneOrder[newIdx];
-      currentSceneRef.current = nextScene;
+      const prevScene = currentSceneRef.current;
 
       scrollLock.current = true;
+      currentSceneRef.current = nextScene;
+      setCurrentScene(nextScene); // 🔁 React state triggers CameraAnimator
+
+      // Scroll snap:
       window.scrollTo({
         top: newIdx * window.innerHeight,
-        behavior: "smooth",
+        behavior: "smooth"
       });
 
-      setTimeout(() => {
+      if (prevScene === "Scene3" && nextScene === "Scene4") {
+        setTransitionTrigger(true);
+      }
+
+      TriggerUiChange();
+
+      scrollLockTimeout = setTimeout(() => {
         scrollLock.current = false;
-      }, 2000);
+      }, 1500); // shorter lock — prevents double fire
     };
 
     window.addEventListener("wheel", handleWheel, { passive: true });
-    return () => window.removeEventListener("wheel", handleWheel);
-  }, []);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      // console.log('sceneGroup ', sceneGroup)
-      const index = Math.round(window.scrollY / window.innerHeight);
-      const nextScene = sceneOrder[Math.max(0, Math.min(sceneOrder.length - 1, index))];
-      const prevScene = currentSceneRef.current;
-
-      if (prevScene && nextScene !== prevScene) {
-        if (prevScene === "Scene3" && nextScene === "Scene4") {
-          setTransitionTrigger(true);
-        }
-
-        prevSceneRef.current = prevScene;
-        currentSceneRef.current = nextScene;
-        setCurrentScene(nextScene);
-
-        TriggerUiChange();
-      }
+    return () => {
+      window.removeEventListener("wheel", handleWheel);
+      clearTimeout(scrollLockTimeout);
     };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
 
 
   return (
@@ -252,12 +256,20 @@ export default function App() {
       />
 
       <Canvas
-        style={{ position: "absolute", top: 0, left: 0, zIndex: 1 }}
+        style={{ 
+          position: "absolute", 
+          top: 0, 
+          left: 0, 
+          width: '100%',
+          height: '100%',
+          zIndex: 1 
+        }}
         frameloop="always"
         shadows
         gl={{ preserveDrawingBuffer: true }}
         // camera={{ position: [0, 1.8, 5], fov: 42 }}
       >
+        {/* <OrbitControls /> */}
         {/* <color attach="background" args={[backgroundColor]} /> */}
 
         <axesHelper args={[5]} />
@@ -273,8 +285,8 @@ export default function App() {
         <Experience
           // currentSceneRef={currentSceneRef} 
           // forceUiUpdateRef={forceUiUpdateRef}
-          sceneGroup={sceneGroup}
-          currentScene={currentSceneRef.current}
+          // sceneGroup={sceneGroup}
+          currentScene={currentScene}
         />
 
       </Canvas>
