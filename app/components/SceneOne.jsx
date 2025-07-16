@@ -38,18 +38,18 @@ export default function SceneOne({
     <>
       {/* <OrbitControls /> */}
 
-      <ambientLight intensity={1.0} />
+      <ambientLight intensity={10.5} />
 
-      {/*
+      
       <directionalLight 
         position={[5, 10, 5]} 
-        intensity={10.2} 
+        intensity={0.2} 
         castShadow
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
-      /> */}
-      <group position={position} scale={scale}>
-        {/* SHOWS PILLARS */}
+      />
+      {/* SHOWS PILLARS */}
+      {/* <group position={position} scale={scale}>
         <primitive 
           object={modernStadiumScene}
           // rotation-y={Math.PI / 2} 
@@ -58,7 +58,7 @@ export default function SceneOne({
           position={position}
           rotation={rotation}
         />
-      </group>
+      </group> */}
       <ParticlesHoverPlane  
         camera={camera}
         width={50}
@@ -74,7 +74,7 @@ export default function SceneOne({
 
 
       {/* NO PILLARS */}
-      {/* <group position={position} scale={scale}>
+      <group position={position} scale={scale}>
         {meshes.map((mesh, i) => (
           <group key={i}>
             <mesh
@@ -84,7 +84,7 @@ export default function SceneOne({
               scale={mesh.scale}
             >
               <meshStandardMaterial
-                color="black"
+                color="teal"
                 envMapIntensity={1}
                 metalness={0.5}
                 roughness={0.9}
@@ -94,7 +94,7 @@ export default function SceneOne({
             </mesh>
           </group>
         ))}
-      </group> */}
+      </group>
     </>
   )
 }

@@ -94,12 +94,111 @@ export const Experience = ({
     });
   }, [environmentMap]);
 
-  useEffect(() => {
-    if (firstSceneCamera.current) {
-      firstRenderScene.current.add(firstSceneCamera.current);
-      // firstSceneCamera.current.lookAt(0, 0, 0);
+  // useEffect(() => {
+  //   if (firstSceneCamera.current) {
+  //     firstRenderScene.current.add(firstSceneCamera.current);
+  //     // firstSceneCamera.current.lookAt(0, 0, 0);
+  //   }
+  // }, []);
+
+
+
+
+
+
+
+
+
+  const lookAtTarget = useRef(new THREE.Vector3());
+
+  // Animate camera using GSAP on scene change
+useEffect(() => {
+  if (!currentScene) return;
+
+  const cam = firstSceneCamera.current;
+  const prevScene = prevSceneRef.current;
+  prevSceneRef.current = currentScene;
+
+  const pRef = progressionRef.current;
+  const timeline = gsap.timeline();
+
+  // ✅ TransitionMaterial animation logic (Scene3 ↔ Scene4)
+  if ((currentScene === "Scene3" && prevScene === "Scene4") ||
+      (currentScene === "Scene4" && prevScene === "Scene3")) {
+    
+    if (currentScene === "Scene3") {
+      // Scene4 → Scene3 (reverse)
+      pRef.value = 2.0;
+      timeline.to(pRef, {
+        value: 1.0,
+        duration: 2,
+        ease: "power2.inOut",
+      }).to(pRef, {
+        value: 0.0,
+        duration: 2,
+        ease: "power2.inOut",
+        delay: 0.3,
+      });
     }
-  }, []);
+
+    if (currentScene === "Scene4") {
+      // Scene3 → Scene4 (forward)
+      pRef.value = 0.0;
+      timeline.to(pRef, {
+        value: 1.0,
+        duration: 2,
+        ease: "power2.inOut",
+      }).to(pRef, {
+        value: 2.0,
+        duration: 2,
+        ease: "power2.inOut",
+        delay: 0.3,
+      });
+    }
+
+    return () => timeline.kill();
+  }
+
+  // ✅ Skip camera animation if no camera data exists for this scene
+  const toPos = cameraPositions[currentScene];
+  const toLook = cameraTargets[currentScene];
+  if (!cam || !toPos || !toLook) return;
+
+  const fromPos = { x: cam.position.x, y: cam.position.y, z: cam.position.z };
+  const fromLook = lookAtTarget.current.clone();
+  const toLookVec = new THREE.Vector3(toLook.x, toLook.y, toLook.z);
+
+  // ✅ Camera GSAP animation (only when valid)
+  gsap.to(fromPos, {
+    ...toPos,
+    duration: 2,
+    ease: "power2.inOut",
+    onUpdate: () => {
+      cam.position.set(fromPos.x, fromPos.y, fromPos.z);
+      cam.lookAt(lookAtTarget.current);
+      invalidate();
+    },
+  });
+
+  gsap.to(fromLook, {
+    x: toLookVec.x,
+    y: toLookVec.y,
+    z: toLookVec.z,
+    duration: 2,
+    ease: "power2.inOut",
+    onUpdate: () => {
+      lookAtTarget.current.copy(fromLook);
+      cam.lookAt(lookAtTarget.current);
+      invalidate();
+    },
+  });
+
+  return () => timeline.kill();
+}, [currentScene]);
+
+
+
+
 
   useEffect(() => {
     if (!currentScene) return;
@@ -108,6 +207,9 @@ export const Experience = ({
 
     const timeline = gsap.timeline();
     const pRef = progressionRef.current;
+
+    console.log('Current Scene:', currentScene);
+    console.log('Previous Scene:', prevScene);
 
     if (currentScene === "Scene3" && prevScene === "Scene4") {
       pRef.value = 2.0;
@@ -178,91 +280,137 @@ export const Experience = ({
     gl.setRenderTarget(null);
   });
 
-  // SMOOTH BUT CAMERA MOVEMENT IS OFF
 
+  // const startPos = useRef(new THREE.Vector3());
+  // const endPos = useRef(new THREE.Vector3());
+  // const startQuat = useRef(new THREE.Quaternion());
+  // const endQuat = useRef(new THREE.Quaternion());
+  // const progress = useRef(0);
+  // const isAnimating = useRef(false);
+  // // TEST FUNCTION
+  // function test() {
+  //   useEffect(() => {
+  //     const camera = firstSceneCamera.current;
+  //     if (!camera || !currentScene) return;
 
+  //     const nextPos = cameraPositions[currentScene];
+  //     const nextLook = cameraTargets[currentScene];
+  //     if (!nextPos || !nextLook) return;
 
-function easeInOutPower(t) {
-  return -(Math.cos(Math.PI * t) - 1) / 2;
-}
-function CameraAnimator({ cameraRef, sceneName }) {
-  const startPos = useRef(new THREE.Vector3());
-  const endPos = useRef(new THREE.Vector3());
+  //     // Save starting position and rotation
+  //     startPos.current.copy(camera.position);
+  //     startQuat.current.copy(camera.quaternion);
 
-  const startQuat = useRef(new THREE.Quaternion());
-  const endQuat = useRef(new THREE.Quaternion());
+  //     // Create target quaternion based on lookAt
+  //     const tempCam = new THREE.PerspectiveCamera();
+  //     tempCam.position.set(nextPos.x, nextPos.y, nextPos.z);
+  //     tempCam.lookAt(new THREE.Vector3(nextLook.x, nextLook.y, nextLook.z));
+  //     endPos.current.set(nextPos.x, nextPos.y, nextPos.z);
+  //     endQuat.current.copy(tempCam.quaternion);
 
-  const progress = useRef(0);
-  const isAnimating = useRef(false);
+  //     progress.current = 0;
+  //     isAnimating.current = true;
+  //   }, [currentScene]);  
+  //   useFrame((_, delta) => {
+  //     if (!isAnimating.current || !firstSceneCamera.current) return;
 
-  useEffect(() => {
-    const camera = cameraRef.current;
-    if (!camera || !sceneName) return;
+  //     const duration = 2.0; // seconds
+  //     progress.current += delta / duration;
 
-    const nextPos = cameraPositions[sceneName];
-    const nextLook = cameraTargets[sceneName];
-    if (!nextPos || !nextLook) return;
+  //     const t = Math.min(Math.max(progress.current, 0), 1);
+  //     const easedT = easeInOutPower(t);
+  //     const camera = firstSceneCamera.current;
 
-    // Save starting position and rotation
-    startPos.current.copy(camera.position);
-    startQuat.current.copy(camera.quaternion);
+  //     // Just after interpolation:
+  //     if (t >= 1) {
+  //       isAnimating.current = false;
+  //       camera.position.copy(endPos.current);
+  //       camera.quaternion.copy(endQuat.current);
+  //     }
 
-    // Create target quaternion based on lookAt
-    const tempCam = new THREE.PerspectiveCamera();
-    tempCam.position.set(nextPos.x, nextPos.y, nextPos.z);
-    tempCam.lookAt(new THREE.Vector3(nextLook.x, nextLook.y, nextLook.z));
-    endPos.current.set(nextPos.x, nextPos.y, nextPos.z);
-    endQuat.current.copy(tempCam.quaternion);
+  //     camera.position.lerpVectors(startPos.current, endPos.current, easedT);
+  //     camera.quaternion.slerpQuaternions(startQuat.current, endQuat.current, easedT);
+  //     camera.updateMatrixWorld();
 
-    progress.current = 0;
-    isAnimating.current = true;
-  }, [sceneName]);
+  //     if (t >= 1) {
+  //       isAnimating.current = false;
+  //     }
 
-  useFrame((_, delta) => {
-    if (!isAnimating.current || !cameraRef.current) return;
-
-    const duration = 2.0; // seconds
-    progress.current += delta / duration;
-
-    const t = Math.min(Math.max(progress.current, 0), 1);
-    const easedT = easeInOutPower(t);
-    const camera = cameraRef.current;
-
-    // Just after interpolation:
-    if (t >= 1) {
-      isAnimating.current = false;
-      camera.position.copy(endPos.current);
-      camera.quaternion.copy(endQuat.current);
-    }
-
-    
-
-    camera.position.lerpVectors(startPos.current, endPos.current, easedT);
-    camera.quaternion.slerpQuaternions(startQuat.current, endQuat.current, easedT);
-
-    camera.updateMatrixWorld();
-
-    if (t >= 1) {
-      isAnimating.current = false;
-    }
-
-    invalidate();
-  });
-
-
-  return null;
-}
+  //     invalidate();
+  //   });
+  // }
 
 
 
 
+// function easeInOutPower(t) {
+//   return -(Math.cos(Math.PI * t) - 1) / 2;
+// }
+// function CameraAnimator({ cameraRef, sceneName }) {
+//   const startPos = useRef(new THREE.Vector3());
+//   const endPos = useRef(new THREE.Vector3());
+
+//   const startQuat = useRef(new THREE.Quaternion());
+//   const endQuat = useRef(new THREE.Quaternion());
+
+//   const progress = useRef(0);
+//   const isAnimating = useRef(false);
+
+//   useEffect(() => {
+//     const camera = cameraRef.current;
+//     if (!camera || !sceneName) return;
+
+//     const nextPos = cameraPositions[sceneName];
+//     const nextLook = cameraTargets[sceneName];
+//     if (!nextPos || !nextLook) return;
+
+//     // Save starting position and rotation
+//     startPos.current.copy(camera.position);
+//     startQuat.current.copy(camera.quaternion);
+
+//     // Create target quaternion based on lookAt
+//     const tempCam = new THREE.PerspectiveCamera();
+//     tempCam.position.set(nextPos.x, nextPos.y, nextPos.z);
+//     tempCam.lookAt(new THREE.Vector3(nextLook.x, nextLook.y, nextLook.z));
+//     endPos.current.set(nextPos.x, nextPos.y, nextPos.z);
+//     endQuat.current.copy(tempCam.quaternion);
+
+//     progress.current = 0;
+//     isAnimating.current = true;
+//   }, [sceneName]);
+
+//   useFrame((_, delta) => {
+//     if (!isAnimating.current || !cameraRef.current) return;
+
+//     const duration = 2.0; // seconds
+//     progress.current += delta / duration;
+
+//     const t = Math.min(Math.max(progress.current, 0), 1);
+//     const easedT = easeInOutPower(t);
+//     const camera = cameraRef.current;
+
+//     // Just after interpolation:
+//     if (t >= 1) {
+//       isAnimating.current = false;
+//       camera.position.copy(endPos.current);
+//       camera.quaternion.copy(endQuat.current);
+//     }
+
+//     camera.position.lerpVectors(startPos.current, endPos.current, easedT);
+//     camera.quaternion.slerpQuaternions(startQuat.current, endQuat.current, easedT);
+
+//     camera.updateMatrixWorld();
+
+//     if (t >= 1) {
+//       isAnimating.current = false;
+//     }
+
+//     invalidate();
+//   });
 
 
-
-
-
-
-
+//   return null;
+// }
 
 
   // // ORIGINAL CAMERA ANIMATOR
@@ -449,14 +597,14 @@ function CameraAnimator({ cameraRef, sceneName }) {
           toneMapped={false}
           transition={0} // 0 = horizontal, 1 = vertical
         /> */}
-        {/* <teleportationMaterial
+        <teleportationMaterial
           ref={renderMaterial}
           tex1={renderTarget1.texture}
           tex2={renderTarget2.texture}
           tex3={renderTarget3.texture}
           toneMapped={false}
           transition={0} // 0 = horizontal, 1 = vertical
-        /> */}
+        />
         {/* <slidingTransitionMaterial
           ref={renderMaterial}
           tex1={renderTarget1.texture}
@@ -472,7 +620,7 @@ function CameraAnimator({ cameraRef, sceneName }) {
           progression={progressionRef.current.value}
           toneMapped={false}
         /> */}
-        <gridDissolveTransitionMaterial
+        {/* <gridDissolveTransitionMaterial
           ref={renderMaterial}
           tex1={renderTarget1.texture}
           tex2={renderTarget2.texture}
@@ -481,7 +629,7 @@ function CameraAnimator({ cameraRef, sceneName }) {
           smoothness={0.5}            // Controls fade blend
           progression={progressionRef.current.value}
           toneMapped={false}
-        />
+        /> */}
       </mesh>
 
       {/* ---------- FIRST SCENE ---------- */}
@@ -497,12 +645,12 @@ function CameraAnimator({ cameraRef, sceneName }) {
           near={0.5} 
         />
 
-        <CameraAnimator 
+        {/* <CameraAnimator 
           key={currentScene}
           cameraRef={firstSceneCamera}
           sceneName={currentScene}
           // particlesRef={particlesRef} 
-        />
+        /> */}
 
         {/* <mesh position-x={1}>
           <sphereGeometry args={[1, 32, 32]} />
