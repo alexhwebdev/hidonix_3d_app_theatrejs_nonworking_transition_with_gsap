@@ -60,16 +60,17 @@ export default function SceneTwo({
   return (
     <>
       {/* <OrbitControls /> */}
-      <ambientLight intensity={0.05} />
+      {/* <ambientLight intensity={1.0} />
 
       <directionalLight
         position={[10, 30, 10]}
-        intensity={1.2}
+        intensity={10.2}
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
       />
-      {/* <hemisphereLight
+
+      <hemisphereLight
         skyColor="#000000"
         groundColor="#000000"
         intensity={0.9}

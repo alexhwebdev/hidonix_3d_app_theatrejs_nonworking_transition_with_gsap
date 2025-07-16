@@ -24,10 +24,16 @@ import { Experience } from "./components/Experience";
 
 import { TransitionMaterial } from "./components/ShaderMaterials/TransitionMaterial";
 import { TeleportationMaterial } from "./components/ShaderMaterials/TeleportationMaterial";
+import { SlidingTransitionMaterial } from "./components/ShaderMaterials/SlidingTransitionMaterial";
+import { HexTileTransitionMaterial } from "./components/ShaderMaterials/HexTileTransitionMaterial";
+import { GridDissolveTransitionMaterial } from "./components/ShaderMaterials/GridDissolveTransitionMaterial";
 
 extend({
   TransitionMaterial,
   TeleportationMaterial,
+  SlidingTransitionMaterial,
+  HexTileTransitionMaterial,
+  GridDissolveTransitionMaterial
 });
 
 

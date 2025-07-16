@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo } from 'react'
-import { OrbitControls, useGLTF } from '@react-three/drei'
+import { Environment, OrbitControls, useGLTF } from '@react-three/drei'
 import { useLoader } from '@react-three/fiber'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader'
@@ -36,9 +36,18 @@ export default function SceneOne({
 
   return (
     <>
-      <OrbitControls />
-      <ambientLight intensity={0.05} />
+      {/* <OrbitControls /> */}
 
+      <ambientLight intensity={1.0} />
+
+      {/*
+      <directionalLight 
+        position={[5, 10, 5]} 
+        intensity={10.2} 
+        castShadow
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+      /> */}
       <group position={position} scale={scale}>
         {/* SHOWS PILLARS */}
         <primitive 

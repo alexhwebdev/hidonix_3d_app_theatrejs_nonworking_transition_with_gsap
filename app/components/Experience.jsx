@@ -48,7 +48,7 @@ export const Experience = ({
   //   }
   // });
 
-  console.log("currentScene ", currentScene)
+  
   const { scene: modernStadiumScene } = useGLTF("/models/vallourec_stadium_draco.glb");
   const environmentMap = useEnvironment({ preset: "city" });
 
@@ -90,14 +90,14 @@ export const Experience = ({
   useEffect(() => {
     [firstRenderScene, secondRenderScene, thirdRenderScene].forEach((sceneRef) => {
       sceneRef.current.environment = environmentMap;
-      sceneRef.current.background = environmentMap;
+      sceneRef.current.background = new THREE.Color(0x000000);
     });
   }, [environmentMap]);
 
   useEffect(() => {
     if (firstSceneCamera.current) {
       firstRenderScene.current.add(firstSceneCamera.current);
-      firstSceneCamera.current.lookAt(0, 0, 0);
+      // firstSceneCamera.current.lookAt(0, 0, 0);
     }
   }, []);
 
@@ -178,9 +178,95 @@ export const Experience = ({
     gl.setRenderTarget(null);
   });
 
+  // SMOOTH BUT CAMERA MOVEMENT IS OFF
 
 
-  // function CameraAnimator({ cameraRef, sceneName }) {
+
+function easeInOutPower(t) {
+  return -(Math.cos(Math.PI * t) - 1) / 2;
+}
+function CameraAnimator({ cameraRef, sceneName }) {
+  const startPos = useRef(new THREE.Vector3());
+  const endPos = useRef(new THREE.Vector3());
+
+  const startQuat = useRef(new THREE.Quaternion());
+  const endQuat = useRef(new THREE.Quaternion());
+
+  const progress = useRef(0);
+  const isAnimating = useRef(false);
+
+  useEffect(() => {
+    const camera = cameraRef.current;
+    if (!camera || !sceneName) return;
+
+    const nextPos = cameraPositions[sceneName];
+    const nextLook = cameraTargets[sceneName];
+    if (!nextPos || !nextLook) return;
+
+    // Save starting position and rotation
+    startPos.current.copy(camera.position);
+    startQuat.current.copy(camera.quaternion);
+
+    // Create target quaternion based on lookAt
+    const tempCam = new THREE.PerspectiveCamera();
+    tempCam.position.set(nextPos.x, nextPos.y, nextPos.z);
+    tempCam.lookAt(new THREE.Vector3(nextLook.x, nextLook.y, nextLook.z));
+    endPos.current.set(nextPos.x, nextPos.y, nextPos.z);
+    endQuat.current.copy(tempCam.quaternion);
+
+    progress.current = 0;
+    isAnimating.current = true;
+  }, [sceneName]);
+
+  useFrame((_, delta) => {
+    if (!isAnimating.current || !cameraRef.current) return;
+
+    const duration = 2.0; // seconds
+    progress.current += delta / duration;
+
+    const t = Math.min(Math.max(progress.current, 0), 1);
+    const easedT = easeInOutPower(t);
+    const camera = cameraRef.current;
+
+    // Just after interpolation:
+    if (t >= 1) {
+      isAnimating.current = false;
+      camera.position.copy(endPos.current);
+      camera.quaternion.copy(endQuat.current);
+    }
+
+    
+
+    camera.position.lerpVectors(startPos.current, endPos.current, easedT);
+    camera.quaternion.slerpQuaternions(startQuat.current, endQuat.current, easedT);
+
+    camera.updateMatrixWorld();
+
+    if (t >= 1) {
+      isAnimating.current = false;
+    }
+
+    invalidate();
+  });
+
+
+  return null;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // // ORIGINAL CAMERA ANIMATOR
+  // function CameraAnimatorOri({ cameraRef, sceneName }) {
   //   const activeScene = useRef(null);
   //   const lookAtTarget = useRef(new THREE.Vector3());
 
@@ -233,7 +319,7 @@ export const Experience = ({
   // }
 
 
-  // // Test Snippet
+  // ---------- Test Snippet ----------
   // useEffect(() => {
   //   if (!firstSceneCamera.current) return;
 
@@ -308,13 +394,27 @@ export const Experience = ({
 
 
 
+
+
   return (
     <>
       <PerspectiveCamera 
         near={0.5} 
         ref={renderCamera} 
+        position={[0, 0, 25]}
       />
+      <ambientLight intensity={1.0} />
+
+      <directionalLight
+        position={[10, 30, 10]}
+        intensity={10.2}
+        castShadow
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
+      />
+
       <CameraControls
+        ref={controls}
         enablePan={false} // Disables panning, so users can't shift the scene left/right/up/down.
         minPolarAngle={DEG2RAD * 70}
         maxPolarAngle={DEG2RAD * 85}
@@ -322,7 +422,6 @@ export const Experience = ({
         maxAzimuthAngle={DEG2RAD * 30}
         minDistance={5}
         maxDistance={9}
-        ref={controls}
 
         // Disables zoom on scroll
         dollyToCursor={false}
@@ -350,13 +449,38 @@ export const Experience = ({
           toneMapped={false}
           transition={0} // 0 = horizontal, 1 = vertical
         /> */}
-        <teleportationMaterial
+        {/* <teleportationMaterial
           ref={renderMaterial}
           tex1={renderTarget1.texture}
           tex2={renderTarget2.texture}
           tex3={renderTarget3.texture}
           toneMapped={false}
           transition={0} // 0 = horizontal, 1 = vertical
+        /> */}
+        {/* <slidingTransitionMaterial
+          ref={renderMaterial}
+          tex1={renderTarget1.texture}
+          tex2={renderTarget2.texture}
+          resolution={[viewport.width, viewport.height]}
+          toneMapped={false}
+        /> */}
+        {/* <hexTileTransitionMaterial
+          ref={renderMaterial}
+          tex1={renderTarget1.texture}
+          tex2={renderTarget2.texture}
+          resolution={[viewport.width, viewport.height]}
+          progression={progressionRef.current.value}
+          toneMapped={false}
+        /> */}
+        <gridDissolveTransitionMaterial
+          ref={renderMaterial}
+          tex1={renderTarget1.texture}
+          tex2={renderTarget2.texture}
+          resolution={[viewport.width, viewport.height]}
+          size={[10, 10]}             // Size of the grid blocks
+          smoothness={0.5}            // Controls fade blend
+          progression={progressionRef.current.value}
+          toneMapped={false}
         />
       </mesh>
 
@@ -369,14 +493,16 @@ export const Experience = ({
           ref={firstSceneCamera}
           makeDefault={false} // Don't override global default camera
           position={[12, 2, 7]} // starting point
+          // rotation={[0, 0, 0]}
           near={0.5} 
         />
 
-        {/* <CameraAnimator 
+        <CameraAnimator 
+          key={currentScene}
           cameraRef={firstSceneCamera}
           sceneName={currentScene}
           // particlesRef={particlesRef} 
-        /> */}
+        />
 
         {/* <mesh position-x={1}>
           <sphereGeometry args={[1, 32, 32]} />
@@ -385,7 +511,12 @@ export const Experience = ({
           <SceneOne />
         </mesh> */}
 
-        <SceneOne camera={firstSceneCamera} />
+        <SceneOne 
+          camera={firstSceneCamera} 
+          position={[0, 0, 0]}
+          rotation={[0, 0, 0]}
+          scale={0.2}
+        />
       </group>
 
       {/* ---------- SECOND SCENE ---------- */}
